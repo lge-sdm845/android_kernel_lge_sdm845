@@ -10,8 +10,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-
+#if IS_ENABLED(CONFIG_LGE_DISPLAY_COMMON)
+#define pr_fmt(fmt)	"[Display][dsi-ctrl:%s:%d] " fmt, __func__, __LINE__
+#else
 #define pr_fmt(fmt)	"dsi-ctrl:[%s] " fmt, __func__
+#endif
 
 #include <linux/of_device.h>
 #include <linux/err.h>
@@ -40,6 +43,9 @@
 #define TO_ON_OFF(x) ((x) ? "ON" : "OFF")
 
 #define CEIL(x, y)              (((x) + ((y)-1)) / (y))
+
+#define TICKS_IN_MICRO_SECOND 1000000
+
 /**
  * enum dsi_ctrl_driver_ops - controller driver ops
  */
@@ -829,7 +835,8 @@ static int dsi_ctrl_update_link_freqs(struct dsi_ctrl *dsi_ctrl,
 {
 	int rc = 0;
 	u32 num_of_lanes = 0;
-	u32 bpp;
+	u32 bpp = 24;
+	u32 refresh_rate = TICKS_IN_MICRO_SECOND;
 	u64 h_period, v_period, bit_rate, pclk_rate, bit_rate_per_lane,
 	    byte_clk_rate;
 	struct dsi_host_common_cfg *host_cfg = &config->common_config;
@@ -850,7 +857,14 @@ static int dsi_ctrl_update_link_freqs(struct dsi_ctrl *dsi_ctrl,
 	if (config->bit_clk_rate_hz == 0) {
 		h_period = DSI_H_TOTAL_DSC(timing);
 		v_period = DSI_V_TOTAL(timing);
-		bit_rate = h_period * v_period * timing->refresh_rate * bpp;
+
+		if (config->panel_mode == DSI_OP_CMD_MODE)
+		    do_div(refresh_rate, config->u.cmd_engine.mdp_transfer_time_us);
+		else
+		    refresh_rate = timing->refresh_rate;
+
+		bit_rate = h_period * v_period * refresh_rate * bpp;
+
 	} else {
 		bit_rate = config->bit_clk_rate_hz * num_of_lanes;
 	}
@@ -1701,8 +1715,12 @@ static int dsi_ctrl_dts_parse(struct dsi_ctrl *dsi_ctrl,
 	dsi_ctrl->phy_isolation_enabled = of_property_read_bool(of_node,
 				    "qcom,dsi-phy-isolation-enabled");
 
+#if IS_ENABLED(CONFIG_LGE_DISPLAY_COMMON)
+	dsi_ctrl->null_insertion_enabled = 0;
+#else
 	dsi_ctrl->null_insertion_enabled = of_property_read_bool(of_node,
 					"qcom,null-insertion-enabled");
+#endif
 
 	return 0;
 }
@@ -2622,8 +2640,13 @@ int dsi_ctrl_host_init(struct dsi_ctrl *dsi_ctrl, bool is_splash_enabled)
 	dsi_ctrl->hw.ops.enable_status_interrupts(&dsi_ctrl->hw, 0x0);
 	dsi_ctrl->hw.ops.enable_error_interrupts(&dsi_ctrl->hw, 0xFF00E0);
 
+#if IS_ENABLED(CONFIG_LGE_DISPLAY_COMMON)
+	pr_info("[DSI_%d]Host initialization complete, continuous splash status:%d\n",
+		dsi_ctrl->cell_index, is_splash_enabled);
+#else
 	pr_debug("[DSI_%d]Host initialization complete, continuous splash status:%d\n",
 		dsi_ctrl->cell_index, is_splash_enabled);
+#endif
 	dsi_ctrl_update_state(dsi_ctrl, DSI_CTRL_OP_HOST_INIT, 0x1);
 error:
 	mutex_unlock(&dsi_ctrl->ctrl_lock);
@@ -2742,8 +2765,13 @@ int dsi_ctrl_host_deinit(struct dsi_ctrl *dsi_ctrl)
 		goto error;
 	}
 
+#if IS_ENABLED(CONFIG_LGE_DISPLAY_COMMON)
+	pr_info("<-- %pS [DSI_%d] Host deinitization complete\n",
+		__builtin_return_address(0), dsi_ctrl->cell_index);
+#else
 	pr_debug("[DSI_%d] Host deinitization complete\n",
 		dsi_ctrl->cell_index);
+#endif
 	dsi_ctrl_update_state(dsi_ctrl, DSI_CTRL_OP_HOST_INIT, 0x0);
 error:
 	mutex_unlock(&dsi_ctrl->ctrl_lock);
@@ -2860,6 +2888,11 @@ int dsi_ctrl_cmd_transfer(struct dsi_ctrl *dsi_ctrl,
 
 	mutex_lock(&dsi_ctrl->ctrl_lock);
 
+	if( (msg->flags) & MIPI_DSI_MSG_REQ_ACK )
+	{
+		flags |= DSI_CTRL_CMD_READ;
+	}
+
 	rc = dsi_ctrl_check_state(dsi_ctrl, DSI_CTRL_OP_CMD_TX, 0x0);
 	if (rc) {
 		pr_err("[DSI_%d] Controller state check failed, rc=%d\n",
@@ -2871,6 +2904,8 @@ int dsi_ctrl_cmd_transfer(struct dsi_ctrl *dsi_ctrl,
 		rc = dsi_message_rx(dsi_ctrl, msg, flags);
 		if (rc <= 0)
 			pr_err("read message failed read length, rc=%d\n", rc);
+		if (rc > 0)
+			rc = 0;
 	} else {
 		rc = dsi_message_tx(dsi_ctrl, msg, flags);
 		if (rc)

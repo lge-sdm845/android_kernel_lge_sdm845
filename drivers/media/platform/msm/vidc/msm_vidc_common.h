@@ -34,6 +34,11 @@ enum load_calc_quirks {
 	LOAD_CALC_IGNORE_NON_REALTIME_LOAD = 1 << 2,
 };
 
+static inline bool is_realtime_session(struct msm_vidc_inst *inst)
+{
+	return !!(inst->flags & VIDC_REALTIME);
+}
+
 enum hal_buffer get_hal_buffer_type(unsigned int type,
 		unsigned int plane_num);
 struct msm_vidc_core *get_vidc_core(int core_id);
