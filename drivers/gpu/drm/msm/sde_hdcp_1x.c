@@ -893,6 +893,9 @@ static int sde_hdcp_1x_write_ksv_fifo(struct sde_hdcp_1x *hdcp)
 	for (i = 0; i < ksv_bytes - 1; i++) {
 		/* Write KSV byte and do not set DONE bit[0] */
 		DSS_REG_W_ND(sec_io, reg_set->sec_sha_data, ksv_fifo[i] << 16);
+#ifdef CONFIG_LGE_DISPLAY_COMMON
+		msleep(5);
+#endif
 
 		/*
 		 * Once 64 bytes have been written, we need to poll for
@@ -1085,6 +1088,7 @@ static void sde_hdcp_1x_auth_work(struct work_struct *work)
 		return;
 	}
 
+	pr_info("hdcp_auth_work +\n");
 	hdcp->sink_r0_ready = false;
 	hdcp->reauth = false;
 	hdcp->ksv_ready = false;
@@ -1136,6 +1140,7 @@ end:
 		hdcp->hdcp_state = HDCP_STATE_AUTH_FAIL;
 
 	sde_hdcp_1x_update_auth_status(hdcp);
+	pr_info("hdcp_auth_work -\n");
 }
 
 static int sde_hdcp_1x_authenticate(void *input)
