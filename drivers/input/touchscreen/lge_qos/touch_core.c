@@ -829,6 +829,8 @@ char *uevent_str[TOUCH_UEVENT_SIZE][2] = {
 	{"TOUCH_GESTURE_WAKEUP=DS_UPDATE_STATE", NULL},
 };
 
+extern int udfps_pressed_status;
+
 void touch_send_uevent(struct touch_core_data *ts, int type)
 {
 	int ret = 0;
@@ -841,13 +843,19 @@ void touch_send_uevent(struct touch_core_data *ts, int type)
 					KOBJ_CHANGE, uevent_str[type]);
 			TOUCH_I("%s\n",  uevent_str[type][0]);
 			break;
+		case TOUCH_UEVENT_LPWG_LONGPRESS_UP:
+			TOUCH_I("Touch UDFPS UP reported\n");
+			udfps_pressed_status = 0;
 		case TOUCH_UEVENT_WATER_MODE_ON:
 		case TOUCH_UEVENT_WATER_MODE_OFF:
-		case TOUCH_UEVENT_LPWG_LONGPRESS_UP:
 			kobject_uevent_env(&device_uevent_touch.kobj,
 					KOBJ_CHANGE, uevent_str[type]);
 			TOUCH_I("%s\n",  uevent_str[type][0]);
 			touch_report_all_event(ts);
+			break;
+		case TOUCH_UEVENT_LPWG_LONGPRESS_DOWN:
+			TOUCH_I("Touch UDFPS DOWN reported\n");
+			udfps_pressed_status = 1;
 			break;
 		case TOUCH_UEVENT_KNOCK:
 			input_report_key(ts->input, KEY_WAKEUP, 1);
