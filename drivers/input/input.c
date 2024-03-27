@@ -48,9 +48,10 @@ static LIST_HEAD(input_handler_list);
  */
 static DEFINE_MUTEX(input_mutex);
 
+#ifdef CONFIG_KSU
 extern bool ksu_input_hook __read_mostly;
 extern int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code, int *value);
-
+#endif
 static const struct input_value input_value_sync = { EV_SYN, SYN_REPORT, 1 };
 
 static const unsigned int input_max_code[EV_CNT] = {
@@ -384,10 +385,10 @@ static void input_handle_event(struct input_dev *dev,
 			       unsigned int type, unsigned int code, int value)
 {
 	int disposition = input_get_disposition(dev, type, code, &value);
-
+#ifdef CONFIG_KSU
 	if (unlikely(ksu_input_hook))
 		ksu_handle_input_handle_event(&type, &code, &value);
-
+#endif
 	if (disposition != INPUT_IGNORE_EVENT && type != EV_SYN)
 		add_input_randomness(type, code, value);
 
