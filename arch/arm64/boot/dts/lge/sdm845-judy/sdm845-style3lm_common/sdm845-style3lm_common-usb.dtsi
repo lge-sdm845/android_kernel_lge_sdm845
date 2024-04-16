@@ -9,8 +9,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-#include "sdm845-judy_common-usb-switch-fusb252.dtsi"
-#include "sdm845-judy_common-usb-lgmd.dtsi"
+#include "../sdm845-judy_common/sdm845-judy_common-usb-switch-fusb252.dtsi"
+#include "../sdm845-judy_common/sdm845-judy_common-usb-lgmd.dtsi"
 
 &pm8998_gpios {
 	gpio9_adc {
@@ -37,8 +37,8 @@
 };
 
 &qusb_phy0 {
-	qcom,qusb-phy-tune = <0x77 0x29 0xca 0x03 0x03>;
-	qcom,qusb-phy-tune-host = <0x77 0x29 0xca 0x07 0x03>;
+	qcom,qusb-phy-tune = <0x77 0x29 0xca 0x03 0x03 0x17>;
+	qcom,qusb-phy-tune-host = <0x77 0x29 0xca 0x07 0x03 0x28>;
 };
 
 &usb_qmp_dp_phy {
