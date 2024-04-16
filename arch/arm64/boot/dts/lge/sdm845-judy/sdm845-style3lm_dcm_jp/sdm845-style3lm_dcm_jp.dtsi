@@ -18,7 +18,7 @@
 #include <dt-bindings/interrupt-controller/arm-gic.h>
 #include "../../../qcom/sdm845-pmic-overlay.dtsi"
 #include "../../../qcom/sdm845-pinctrl-overlay.dtsi"
-#include "../sdm845-judy_common/sdm845-judy_common.dtsi"
+#include "../sdm845-style3lm_common/sdm845-style3lm_common.dtsi"
 #include "sdm845-style3lm_dcm_jp-pinctrl.dtsi"
 #include "sdm845-style3lm_dcm_jp-panel.dtsi"
 #include "sdm845-style3lm_dcm_jp-misc.dtsi"

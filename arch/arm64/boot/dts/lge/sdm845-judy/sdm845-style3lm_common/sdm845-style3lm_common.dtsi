@@ -13,12 +13,12 @@
 		ramoops_mem: ramoops_region@b0000000 {
 			compatible = "removed-dma-pool";
 			no-map;
-			reg = <0 0xb0000000 0 0x100000>;
+			reg = <0 0xb0000000 0 0x300000>;
 		};
 
 		crash_fb_mem: crash_fb_mem@b0100000 {
 			linux,contiguous-region;
-			reg = <0 0xb0100000 0 0x1800000>;
+			reg = <0 0x9d400000 0 0x2400000>;
 			label = "crash_fb_mem";
 		};
 };
@@ -71,19 +71,19 @@
 
 	ramoops {
 		compatible = "ramoops";
-		mem-size = <0x80000>;
+		mem-size = <0x280000>;
 		mem-address = <0xb0000000>;
 		record-size = <4096>;
 		console-size = <0x40000>;
 		ftrace-size = <0x40000>;
-		pmsg-size = <0>;
+		pmsg-size = <0x200000>;
 		ecc-size = <0>;
 	};
 
 	crash_fb {
 		compatible = "crash_fb";
-		mem-addr = <0xb0100000>;
-		mem-size = <0x1800000>;
+		mem-addr = <0x9d400000>;
+		mem-size = <0x2400000>;
 	};
 
 	bootlog {
