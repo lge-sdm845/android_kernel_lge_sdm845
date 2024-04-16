@@ -10,7 +10,7 @@
  * GNU General Public License for more details.
  */
 
-#include "../sdm845-judy_common/sdm845-judy_common-usb.dtsi"
+#include "../sdm845-style3lm_common/sdm845-style3lm_common-usb.dtsi"
 
 &qusb_phy0 {
 	qcom,qusb-phy-tune = <0x77 0x29 0xca 0x04 0x03 0x15>;
