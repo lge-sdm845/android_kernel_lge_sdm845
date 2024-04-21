@@ -19,10 +19,6 @@
 #include <linux/bitops.h>
 #include <linux/delay.h>
 
-#ifdef CONFIG_LGE_BDI_STRICTLIMIT_DIRTY
-#include <linux/backing-dev.h>
-#endif
-
 #include <linux/mmc/card.h>
 #include <linux/mmc/host.h>
 #include <linux/sched/rt.h>
@@ -506,13 +502,6 @@ success:
 	mq->thread = kthread_run(mmc_queue_thread, mq, "mmcqd/%d%s",
 		host->index, subname ? subname : "");
 
-#ifdef CONFIG_LGE_BDI_STRICTLIMIT_DIRTY
-	if (mmc_card_sd(card)) {
-		mq->queue->backing_dev_info->capabilities |= BDI_CAP_STRICTLIMIT;
-		bdi_set_min_ratio(mq->queue->backing_dev_info, 10);
-		bdi_set_max_ratio(mq->queue->backing_dev_info, 30);
-	}
-#endif
 	if (IS_ERR(mq->thread)) {
 		ret = PTR_ERR(mq->thread);
 		goto free_bounce_sg;
@@ -552,13 +541,6 @@ void mmc_cleanup_queue(struct mmc_queue *mq)
 
 	/* Then terminate our worker thread */
 	kthread_stop(mq->thread);
-
-#ifdef CONFIG_LGE_BDI_STRICTLIMIT_DIRTY
-	if (mq->card && mmc_card_sd(mq->card)) {
-		bdi_set_min_ratio(mq->queue->backing_dev_info, 0);
-		bdi_set_max_ratio(mq->queue->backing_dev_info, 100);
-	}
-#endif
 
 	/* Empty the queue */
 	spin_lock_irqsave(q->queue_lock, flags);
