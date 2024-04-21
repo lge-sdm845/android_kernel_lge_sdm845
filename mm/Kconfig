@@ -830,12 +830,6 @@ config LGE_ADAPTIVE_READAHEAD
 	help
 	  lge adaptive readahead set enable
 
-config LGE_BDI_STRICTLIMIT_DIRTY
-	bool "limit dirty ratio strictly"
-	default y
-	help
-	  limit dirty page ratio strictly
-
 config MIGRATE_HIGHORDER
 	bool "Enable migrate highorder"
 	default n
