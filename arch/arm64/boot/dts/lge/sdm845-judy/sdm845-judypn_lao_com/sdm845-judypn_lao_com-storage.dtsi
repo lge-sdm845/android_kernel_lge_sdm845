@@ -28,7 +28,7 @@
 				mnt_point = "/oem/OP";
 				mnt_flags = "ro,noatime,nosuid,nodev,barrier=1,data=ordered,noauto_da_alloc";
 				fsmgr_flags = "wait,slotselect,avb,nofail";
-				status = "ok";
+				status = "disabled";
 			};
 		};
 	};
