@@ -12,7 +12,7 @@ config NF_DEFRAG_IPV4
 config NF_CONNTRACK_IPV4
 	tristate "IPv4 connection tracking support (required for NAT)"
 	depends on NF_CONNTRACK
-	default m if NETFILTER_ADVANCED=n
+	default y if NETFILTER_ADVANCED=n
 	select NF_DEFRAG_IPV4
 	---help---
 	  Connection tracking keeps a record of what packets have passed
@@ -72,22 +72,22 @@ config NF_DUP_IPV4
 
 config NF_LOG_ARP
 	tristate "ARP packet logging"
-	default m if NETFILTER_ADVANCED=n
+	default y if NETFILTER_ADVANCED=n
 	select NF_LOG_COMMON
 
 config NF_LOG_IPV4
 	tristate "IPv4 packet logging"
-	default m if NETFILTER_ADVANCED=n
+	default y if NETFILTER_ADVANCED=n
 	select NF_LOG_COMMON
 
 config NF_REJECT_IPV4
 	tristate "IPv4 packet rejection"
-	default m if NETFILTER_ADVANCED=n
+	default y if NETFILTER_ADVANCED=n
 
 config NF_NAT_IPV4
 	tristate "IPv4 NAT"
 	depends on NF_CONNTRACK_IPV4
-	default m if NETFILTER_ADVANCED=n
+	default y if NETFILTER_ADVANCED=n
 	select NF_NAT
 	help
 	  The IPv4 NAT option allows masquerading, port forwarding and other
@@ -165,7 +165,7 @@ endif # NF_NAT_IPV4
 
 config IP_NF_IPTABLES
 	tristate "IP tables support (required for filtering/masq/NAT)"
-	default m if NETFILTER_ADVANCED=n
+	default y if NETFILTER_ADVANCED=n
 	select NETFILTER_XTABLES
 	help
 	  iptables is a general, extensible packet identification framework.
@@ -219,7 +219,7 @@ config IP_NF_MATCH_TTL
 # `filter', generic and specific targets
 config IP_NF_FILTER
 	tristate "Packet filtering"
-	default m if NETFILTER_ADVANCED=n
+	default y if NETFILTER_ADVANCED=n
 	help
 	  Packet filtering defines a table `filter', which has a series of
 	  rules for simple packet filtering at local input, forwarding and
@@ -231,7 +231,7 @@ config IP_NF_TARGET_REJECT
 	tristate "REJECT target support"
 	depends on IP_NF_FILTER
 	select NF_REJECT_IPV4
-	default m if NETFILTER_ADVANCED=n
+	default y if NETFILTER_ADVANCED=n
 	help
 	  The REJECT target allows a filtering rule to specify that an ICMP
 	  error should be issued in response to an incoming packet, rather
@@ -256,7 +256,7 @@ config IP_NF_TARGET_SYNPROXY
 config IP_NF_NAT
 	tristate "iptables NAT support"
 	depends on NF_CONNTRACK_IPV4
-	default m if NETFILTER_ADVANCED=n
+	default y if NETFILTER_ADVANCED=n
 	select NF_NAT
 	select NF_NAT_IPV4
 	select NETFILTER_XT_NAT
@@ -272,7 +272,7 @@ if IP_NF_NAT
 config IP_NF_TARGET_MASQUERADE
 	tristate "MASQUERADE target support"
 	select NF_NAT_MASQUERADE_IPV4
-	default m if NETFILTER_ADVANCED=n
+	default y if NETFILTER_ADVANCED=n
 	help
 	  Masquerading is a special case of NAT: all outgoing connections are
 	  changed to seem to come from a particular interface's address, and
@@ -285,7 +285,7 @@ config IP_NF_TARGET_MASQUERADE
 config IP_NF_TARGET_NATTYPE_MODULE
 	tristate "NATTYPE target support"
 	depends on NF_NAT
-	default m if NETFILTER_ADVANCED=n
+	default y if NETFILTER_ADVANCED=n
 	help
 	  NATTYPE is a special case of NAT: used to support FULL Cone NAT
 	  and ADDRESS Restricted Cone NAT. All incoming connections are
@@ -316,7 +316,7 @@ endif # IP_NF_NAT
 # mangle + specific targets
 config IP_NF_MANGLE
 	tristate "Packet mangling"
-	default m if NETFILTER_ADVANCED=n
+	default y if NETFILTER_ADVANCED=n
 	help
 	  This option adds a `mangle' table to iptables: see the man page for
 	  iptables(8).  This table is used for various packet alterations

@@ -36,7 +36,7 @@ config DRM_IMX_IPUV3
 	depends on DRM_IMX
 	depends on IMX_IPUV3_CORE
 	default y if DRM_IMX=y
-	default m if DRM_IMX=m
+	default y if DRM_IMX=m
 
 config DRM_IMX_HDMI
 	tristate "Freescale i.MX DRM HDMI"
