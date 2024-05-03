@@ -1,6 +1,6 @@
 menuconfig DEV_DAX
 	tristate "DAX: direct access to differentiated memory"
-	default m if NVDIMM_DAX
+	default y if NVDIMM_DAX
 	depends on TRANSPARENT_HUGEPAGE
 	select SRCU
 	help
