@@ -61,6 +61,10 @@
 extern void printascii(char *);
 #endif
 
+#if defined(CONFIG_LEAVE_INITLOG) && defined(CONFIG_LGE_HANDLE_PANIC)
+#include <soc/qcom/lge/lge_handle_panic.h>
+#endif
+
 int console_printk[4] = {
 	CONSOLE_LOGLEVEL_DEFAULT,	/* console_loglevel */
 	MESSAGE_LOGLEVEL_DEFAULT,	/* default_message_loglevel */
@@ -394,6 +398,11 @@ static u32 clear_idx;
 static char __log_buf[__LOG_BUF_LEN] __aligned(LOG_ALIGN);
 static char *log_buf = __log_buf;
 static u32 log_buf_len = __LOG_BUF_LEN;
+#if defined(CONFIG_LEAVE_INITLOG) && defined(CONFIG_LGE_HANDLE_PANIC)
+char *boot_log_buf;
+unsigned int boot_log_buf_size;
+static bool block_overwrite;
+#endif
 
 /* Return log buffer address */
 char *log_buf_addr_get(void)
@@ -558,6 +567,14 @@ static int log_store(int facility, int level,
 	}
 
 	if (log_next_idx + size + sizeof(struct printk_log) > log_buf_len) {
+#if defined(CONFIG_LEAVE_INITLOG) && defined(CONFIG_LGE_HANDLE_PANIC)
+		if (lge_get_download_mode() && block_overwrite){
+			if (boot_log_buf)
+				memcpy(boot_log_buf, log_buf, log_buf_len);
+			block_overwrite = false;
+			boot_log_buf_size = log_buf_len;
+		}
+#endif
 		/*
 		 * This message + an additional empty header does not fit
 		 * at the end of the buffer. Add an empty header with len == 0
@@ -1861,12 +1878,20 @@ asmlinkage int vprintk_emit(int facility, int level,
 	if (!in_sched) {
 		lockdep_off();
 		/*
+		 * Disable preemption to avoid being preempted while holding
+		 * console_sem which would prevent anyone from printing to
+		 * console
+		 */
+		preempt_disable();
+
+		/*
 		 * Try to acquire and then immediately release the console
 		 * semaphore.  The release will print out buffers and wake up
 		 * /dev/kmsg and syslog() users.
 		 */
 		if (console_trylock())
 			console_unlock();
+		preempt_enable();
 		lockdep_on();
 	}
 
@@ -2213,20 +2238,7 @@ int console_trylock(void)
 		return 0;
 	}
 	console_locked = 1;
-	/*
-	 * When PREEMPT_COUNT disabled we can't reliably detect if it's
-	 * safe to schedule (e.g. calling printk while holding a spin_lock),
-	 * because preempt_disable()/preempt_enable() are just barriers there
-	 * and preempt_count() is always 0.
-	 *
-	 * RCU read sections have a separate preemption counter when
-	 * PREEMPT_RCU enabled thus we must take extra care and check
-	 * rcu_preempt_depth(), otherwise RCU read sections modify
-	 * preempt_count().
-	 */
-	console_may_schedule = !oops_in_progress &&
-			preemptible() &&
-			!rcu_preempt_depth();
+	console_may_schedule = 0;
 	return 1;
 }
 EXPORT_SYMBOL(console_trylock);
@@ -2510,8 +2522,29 @@ void console_flush_on_panic(void)
 	 */
 	console_trylock();
 	console_may_schedule = 0;
+	console_suspended = 0;
 	console_unlock();
 }
+
+#ifdef CONFIG_MACH_LGE
+static atomic_t console_uart = ATOMIC_INIT(1);
+void console_uart_enable(void)
+{
+	console_flush_on_panic();
+	atomic_inc(&console_uart);
+}
+
+void console_uart_disable(void)
+{
+	atomic_dec(&console_uart);
+	console_flush_on_panic();
+}
+
+int console_uart_status(void)
+{
+	return (int)atomic_read(&console_uart);
+}
+#endif
 
 /*
  * Return the console tty driver structure and its associated index
