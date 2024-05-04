@@ -995,7 +995,7 @@ static int fuse_bdi_init(struct fuse_conn *fc, struct super_block *sb)
 	fc->bdi.name = "fuse";
 	fc->bdi.ra_pages = (VM_MAX_READAHEAD * 1024) / PAGE_SIZE;
 	/* fuse does it's own writeback accounting */
-	fc->bdi.capabilities = BDI_CAP_NO_ACCT_WB | BDI_CAP_STRICTLIMIT;
+	fc->bdi.capabilities = BDI_CAP_NO_ACCT_WB;
 
 	err = bdi_init(&fc->bdi);
 	if (err)
@@ -1026,6 +1026,14 @@ static int fuse_bdi_init(struct fuse_conn *fc, struct super_block *sb)
 	 *    /sys/class/bdi/<bdi>/max_ratio
 	 */
 	bdi_set_max_ratio(&fc->bdi, 1);
+#ifdef CONFIG_LGE_BDI_STRICTLIMIT_DIRTY
+	/* fuse max_ratio will be set to 40 at vold by Android. */
+
+	/* sometimes, fuse wb_thresh is calculated to 0, suddenly. */
+	/* then, io_schedule_timeout is called although dirty is very few. */
+	/* if min_ratio value set greater than 0, it prevent unnecessary io_schedule_timeout  */
+	bdi_set_min_ratio(&fc->bdi, 1);
+#endif
 
 	return 0;
 }
