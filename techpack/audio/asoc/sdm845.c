@@ -8269,10 +8269,12 @@ static int msm_asoc_machine_probe(struct platform_device *pdev)
 		goto err;
 	}
 
+#if 0
 #if IS_ENABLED(CONFIG_SND_SOC_WSA881X)
 	ret = msm_init_wsa_dev(pdev, card);
 	if (ret)
 		goto err;
+#endif
 #endif
 
 #ifdef CONFIG_MACH_LGE
