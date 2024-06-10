@@ -116,11 +116,13 @@ extern void actuator_create_sysfs(struct cam_actuator_ctrl_t *a_ctrl) {
 			camera_act_hall_dev   = device_create(a_ctrl->camera_class, NULL,
 					0, a_ctrl, "actuator_normal");
 			device_create_file(camera_act_hall_dev, &dev_attr_act_normal_hall);
-		} else {
+		} else if(a_ctrl->soc_info.index == 3) {
             CAM_INFO(CAM_ACTUATOR, "Create act_tele_hall_class!!");
 			camera_act_hall_dev   = device_create(a_ctrl->camera_class, NULL,
 					0, a_ctrl, "actuator_tele");
 			device_create_file(camera_act_hall_dev, &dev_attr_act_tele_hall);
+		} else {
+			CAM_DBG(CAM_ACTUATOR, "Not LGIT actuator scenario, no class created");
 		}
 	}
 }
